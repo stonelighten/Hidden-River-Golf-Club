@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Golf Mini App | Putting Challenge</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f6f4;
+      color: #1f1f1f;
+      margin: 0;
+    }
+    .topbar {
+      background: #0f3d2e;
+      padding: 12px 16px;
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .topbar a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .wrap {
+      max-width: 900px;
+      margin: 18px auto;
+      padding: 0 12px;
+    }
+    .card {
+      background: #fff;
+      padding: 18px;
+      border-radius: 10px;
+      margin: 14px 0;
+    }
+    .row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: end;
+    }
+    label {
+      font-weight: 700;
+      display: block;
+      margin-bottom: 6px;
+    }
+    select, input {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      width: 240px;
+      max-width: 100%;
+      font-size: 16px;
+    }
+    button {
+      padding: 10px 14px;
+      border: 0;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    .btn-primary { background: #1b7a57; color: #fff; }
+    .btn-secondary { background: #e9ecef; color: #111; }
+    .pill {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #eef3f1;
+      margin-right: 8px;
+      margin-top: 8px;
+      font-size: 14px;
+    }
+    .muted { color: #555; }
+    .msg {
+      padding: 10px 12px;
+      border-radius: 8px;
+      margin-top: 12px;
+      background: #eef3f1;
+    }
+    .danger { background: #ffe8e8; }
+    .success { background: #e8fff0; }
+    .small { font-size: 14px; }
+  </style>
+</head>
+
+<body>
+  <div class="topbar">
+    <div>
+      <a href="scratch.html">← Back to Scratch</a>
+    </div>
+    <div style="color:#fff; font-weight:700;">Putting Challenge</div>
+  </div>
+
+  <div class="wrap">
+    <div class="card">
+      <h1 style="margin-top:0;">Putting Challenge</h1>
+      <p class="muted">
+        Estimate the make % for a putt distance. Difficulty changes the “target zone.”
+        Score points for accurate estimates and build a streak.
+      </p>
+
+      <div class="row">
+        <div>
+          <label for="difficulty">Difficulty</label>
+          <select id="difficulty">
+            <option value="easy">Easy (wide target)</option>
+            <option value="medium" selected>Medium</option>
+            <option value="hard">Hard (tight target)</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="guess">Your estimate (0–100%)</label>
+          <input id="guess" type="number" min="0" max="100" placeholder="e.g., 35" />
+        </div>
+
+        <div>
+          <button class="btn-primary" id="submitBtn">Submit</button>
+          <button class="btn-secondary" id="newBtn">New Putt</button>
+        </div>
+      </div>
+
+      <div style="margin-top:10px;">
+        <span class="pill" id="distancePill">Distance: — ft</span>
+        <span class="pill" id="parPill">Target make %: —</span>
+        <span class="pill" id="timePill">Time: 20s</span>
+      </div>
+
+      <div class="msg small" id="message">
+        Click <strong>New Putt</strong> to start.
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0;">Scoreboard</h2>
+      <div class="row" style="align-items:center;">
+        <div class="pill">Score: <strong id="score">0</strong></div>
+        <div class="pill">Streak: <strong id="streak">0</strong></div>
+        <div class="pill">Rounds: <strong id="rounds">0</strong></div>
+        <div class="pill">Best Streak: <strong id="bestStreak">0</strong></div>
+      </div>
+      <p class="muted small" style="margin-bottom:0;">
+        Tip: Keep your estimate realistic—longer putts should be lower make %.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0;">How it works</h2>
+      <ul>
+        <li>You get a random putt distance from 3–40 feet.</li>
+        <li>The app generates a “target make %” based on distance (simple model).</li>
+        <li>Your estimate is “correct” if it’s within a tolerance (based on difficulty).</li>
+        <li>You score more points when you’re closer to the target.</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    // --- Simple putting make% model (not real PGA data, just reasonable for a class app) ---
+    // Clamped between 1% and 99%
+    function targetMakePct(distanceFt) {
+      // Smooth decay: close putts high %, long putts low %
+      const raw = 100 * Math.exp(-0.075 * (distanceFt - 3));
+      return Math.min(99, Math.max(1, Math.round(raw)));
+    }
+
+    function toleranceByDifficulty(diff) {
+      if (diff === "easy") return 18;    // ±18%
+      if (diff === "hard") return 8;     // ±8%
+      return 12;                         // medium: ±12%
+    }
+
+    // --- State ---
+    let distance = null;
+    let target = null;
+    let score = 0;
+    let streak = 0;
+    let bestStreak = 0;
+    let rounds = 0;
+
+    let timeLeft = 20;
+    let timer = null;
+
+    // --- Elements ---
+    const distancePill = document.getElementById("distancePill");
+    const parPill = document.getElementById("parPill");
+    const timePill = document.getElementById("timePill");
+    const message = document.getElementById("message");
+
+    const guessInput = document.getElementById("guess");
+    const difficultySel = document.getElementById("difficulty");
+
+    const scoreEl = document.getElementById("score");
+    const streakEl = document.getElementById("streak");
+    const bestStreakEl = document.getElementById("bestStreak");
+    const roundsEl = document.getElementById("rounds");
+
+    const submitBtn = document.getElementById("submitBtn");
+    const newBtn = document.getElementById("newBtn");
+
+    function setMessage(text, type) {
+      message.className = "msg small";
+      if (type === "success") message.classList.add("success");
+      if (type === "danger") message.classList.add("danger");
+      message.innerHTML = text;
+    }
+
+    function updateBoard() {
+      scoreEl.textContent = score;
+      streakEl.textContent = streak;
+      bestStreakEl.textContent = bestStreak;
+      roundsEl.textContent = rounds;
+    }
+
+    function resetTimer() {
+      if (timer) clearInterval(timer);
+      timeLeft = 20;
+      timePill.textContent = `Time: ${timeLeft}s`;
+      timer = setInterval(() => {
+        timeLeft -= 1;
+        timePill.textContent = `Time: ${timeLeft}s`;
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          timer = null;
+          // Time-out counts as a miss
+          streak = 0;
+          updateBoard();
+          setMessage("⏱️ Time’s up. Click <strong>New Putt</strong> to try again.", "danger");
+          submitBtn.disabled = true;
+        }
+      }, 1000);
+    }
+
+    function newPutt() {
+      // Distance from 3–40 ft
+      distance = Math.floor(Math.random() * (40 - 3 + 1)) + 3;
+      target = targetMakePct(distance);
+
+      distancePill.textContent = `Distance: ${distance} ft`;
+      parPill.textContent = `Target make %: ${target}%`;
+
+      guessInput.value = "";
+      guessInput.focus();
+
+      submitBtn.disabled = false;
+      setMessage("Enter your estimate and press <strong>Submit</strong>.", "");
+      resetTimer();
+    }
+
+    function scoreRound(guess, target, tolerance) {
+      const diff = Math.abs(guess - target);
+      const within = diff <= tolerance;
+
+      // Points: start at 100, subtract 4 per % point away, minimum 5
+      const base = Math.max(5, 100 - diff * 4);
+
+      return { within, diff, points: within ? base : 0 };
+    }
+
+    submitBtn.addEventListener("click", () => {
+      if (distance === null || target === null) {
+        setMessage("Click <strong>New Putt</strong> first.", "danger");
+        return;
+      }
+
+      const guess = Number(guessInput.value);
+      if (!Number.isFinite(guess) || guess < 0 || guess > 100) {
+        setMessage("Please enter a number from 0 to 100.", "danger");
+        return;
+      }
+
+      const tol = toleranceByDifficulty(difficultySel.value);
+      const result = scoreRound(guess, target, tol);
+
+      rounds += 1;
+
+      if (result.within) {
+        score += result.points;
+        streak += 1;
+        bestStreak = Math.max(bestStreak, streak);
+        setMessage(
+          `✅ Nice! You were <strong>${result.diff}%</strong> away (tolerance ±${tol}%). 
+           You earned <strong>${result.points}</strong> points.`,
+          "success"
+        );
+      } else {
+        streak = 0;
+        setMessage(
+          `❌ Miss. You were <strong>${result.diff}%</strong> away (tolerance ±${tol}%). 
+           Target was <strong>${target}%</strong>.`,
+          "danger"
+        );
+      }
+
+      updateBoard();
+
+      // End the round
+      submitBtn.disabled = true;
+      if (timer) clearInterval(timer);
+      timer = null;
+      timePill.textContent = "Time: —";
+    });
+
+    newBtn.addEventListener("click", newPutt);
+
+    // Allow Enter key to submit
+    guessInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") submitBtn.click();
+    });
+
+    updateBoard();
+  </script>
+</body>
+</html>

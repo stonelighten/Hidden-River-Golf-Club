@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hidden River Golf Club</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+
+
+<body class="page">
+
+  <!-- Top Navigation -->
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="topbar-left">
+        <a href="index.html">← Back to Professional Page</a>
+      </div>
+      <div class="topbar-right">
+        <a href="#tableau">Jump to Tee Sheet</a>
+        <a href="app.html" class="btn-link">Mini Web App</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <div class="section header">
+    <h1>Hidden River Golf Club</h1>
+    <h2 class="subtitle">Everything you need to know before teeing off at The Hidden River</h2>
+    <p class="lead">
+      Hidden River Golf Club offers a challenging but enjoyable experience for golfers of all skill levels.
+      This page highlights the essentials to know before your round, from equipment to etiquette.
+    </p>
+  </div>
+
+  <!-- Content Block 1 -->
+  <div class="section">
+    <h2>1. Clubs & Equipment</h2>
+
+    <ol>
+      <li>Clubs
+        <ul>
+          <li>Driver</li>
+          <li>Irons</li>
+          <li>Putter</li>
+        </ul>
+      </li>
+      <li>Golf balls</li>
+      <li>Tees</li>
+    </ol>
+
+    <p>
+      Hidden River features forgiving landing areas off the tee but demands solid distance control into greens.
+      Bringing a full set helps you play smarter to yardages and avoid forcing uncomfortable swings.
+    </p>
+
+    <img class="photo" src="images/golf.jpg" alt="Hidden River Golf Club course" />
+  </div>
+
+  <!-- Content Block 2 -->
+  <div class="section">
+    <h2>2. Core Skills</h2>
+    <p>
+      The biggest separator at Hidden River is controlling misses—aiming for safe targets and minimizing penalty shots.
+      A consistent pre-shot routine and smart club selection will save strokes faster than trying hero shots.
+    </p>
+  </div>
+
+  <!-- Content Block 3 -->
+  <div class="section">
+    <h2>3. Course Etiquette</h2>
+    <p>
+      Respectful pace of play keeps everyone enjoying their round. Be ready when it’s your turn, repair ball marks,
+      and keep carts in the right places so the course stays in great condition for the next groups.
+    </p>
+  </div>
+
+  <!-- Video -->
+  <div class="section">
+    <h2>Course Overview Video</h2>
+    <div class="video-wrap">
+      <iframe
+        src="https://www.youtube.com/embed/mElRrrsEWeI"
+        title="Golf basics"
+        allowfullscreen>
+      </iframe>
+    </div>
+  </div>
+
+  <!-- FULL-WIDTH INTERACTIVE TABLEAU (DO NOT CHANGE VIZ) -->
+  <div class="tableau-full" id="tableau">
+    <div class="tableau-inner">
+      <h2>Tee Sheet & Course Info</h2>
+      <p class="muted">Interactive Tableau dashboard embedded live.</p>
+    </div>
+
+    <div class="tableauPlaceholder" id="tableauVizFull"></div>
+  </div>
+
+  <script src="https://public.tableau.com/javascripts/api/viz_v1.js"></script>
+  <script>
+    // SAME Tableau viz as before — unchanged
+    const divElement = document.getElementById('tableauVizFull');
+    const vizElement = document.createElement('object');
+    vizElement.className = 'tableauViz';
+
+    const params = {
+      host_url: 'https%3A%2F%2Fpublic.tableau.com%2F',
+      embed_code_version: '3',
+      site_root: '',
+      name: 'GolfClubOverviewDashboard/Overview',
+      tabs: 'no',
+      toolbar: 'yes'
+    };
+
+    for (const key in params) {
+      const p = document.createElement('param');
+      p.name = key;
+      p.value = params[key];
+      vizElement.appendChild(p);
+    }
+
+    divElement.appendChild(vizElement);
+
+    // Sizing only (formatting OK)
+    vizElement.style.width = '100%';
+    vizElement.style.height = '760px';
+  </script>
+
+</body>
+</html>
