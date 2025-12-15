@@ -109,11 +109,11 @@ ul > li { margin: 6px 0; }
 /* Video */
 .video-wrap iframe {
   width: 100%;
-  height: 380px;
-  border: none;
-  border-radius: 14px;
-  box-shadow: 0 12px 24px rgba(0,0,0,0.10);
+  height: 420px;
+  border: 0;
+  border-radius: 16px;
 }
+
 
 .muted { color: #555; }
 
@@ -137,5 +137,23 @@ ul > li { margin: 6px 0; }
 
 @media (max-width: 600px) {
   .section { padding: 18px; margin: 16px 12px; }
-  .video-wrap iframe { height: 240px; }
+  
 }
+/* --- Mobile-proof YouTube embed (override) --- */
+.video-wrap {
+  width: 100%;
+  min-height: 260px;          /* ensures visible space even if iframe fails */
+  background: #000;           /* if you see black, the wrapper is working */
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+}
+
+.video-wrap iframe {
+  width: 100% !important;
+  height: 420px !important;   /* hard height = no collapsing */
+  border: 0 !important;
+  display: block !important;
+  background: #000;
+}
+
